@@ -12,7 +12,7 @@ of its own.
 
 > [!IMPORTANT]
 > `gtstack` is early software. It currently supports **linear stacks only** and
-> targets `gh-stack` **v0.1.0**, state schema **v1**. When an operation cannot
+> targets `gh-stack` **v0.1.1**, state schema **v1**. When an operation cannot
 > be translated safely, it stops with an actionable error instead of guessing.
 
 ## Quick start

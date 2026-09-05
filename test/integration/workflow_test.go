@@ -429,7 +429,7 @@ func TestUnsupportedCommands(t *testing.T) {
 // TestLinkedWorktree covers both sides of a case gt cannot fix on its own.
 //
 // gt reads the stack state from the shared git directory, so it recognises a
-// tracked branch from a linked worktree. gh stack v0.1.0 does not: run there,
+// tracked branch from a linked worktree. gh stack v0.1.1 does not: run there,
 // every one of its commands reports the branch as untracked. So gt reaches the
 // right decision and then the command it runs fails anyway.
 //
@@ -460,6 +460,6 @@ func TestLinkedWorktree(t *testing.T) {
 		t.Errorf("`gh stack view` now works in a linked worktree; gt already resolves state through "+
 			"--git-common-dir, so drop this expectation and test the worktree path for real\n%s", r.output())
 	} else if !strings.Contains(r.output(), "not part of a stack") {
-		t.Errorf("`gh stack view` failed differently in a linked worktree than the known v0.1.0 limitation\n%s", r.output())
+		t.Errorf("`gh stack view` failed differently in a linked worktree than the known v0.1.1 limitation\n%s", r.output())
 	}
 }
