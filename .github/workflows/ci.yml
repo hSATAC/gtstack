@@ -58,5 +58,7 @@ jobs:
       - name: go vet
         run: go vet -tags=integration ./...
 
+      # -count=1: the test cache cannot tell which gh-stack version the gh
+      # subprocess ran, so a cached pass could hide a regression.
       - name: go test -tags=integration
-        run: go test -tags=integration -timeout 15m ./test/integration/
+        run: go test -count=1 -tags=integration -timeout 15m ./test/integration/

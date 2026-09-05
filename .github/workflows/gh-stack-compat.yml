@@ -58,7 +58,9 @@ jobs:
       - name: Integration tests
         run: |
           set -o pipefail
-          go test -tags=integration -timeout 15m ./test/integration/ 2>&1 | tee test-output.txt
+          # -count=1: the test cache cannot tell which gh-stack version the gh
+          # subprocess ran, so a cached pass could hide a regression.
+          go test -count=1 -tags=integration -timeout 15m ./test/integration/ 2>&1 | tee test-output.txt
 
       - name: Report the failure
         if: failure()

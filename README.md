@@ -116,7 +116,7 @@ blindly forwarding the command.
 | `gt restack` | `gh stack rebase` (`-d`/`-u` map to `--downstack`/`--upstack`) |
 | `gt continue` / `gt abort` | Continue or abort the paused `gh stack rebase` or `gh stack modify` |
 | `gt checkout` / `gt co` | `gh stack checkout`, `gh stack switch`, or `git checkout`, depending on the target |
-| `gt get <pr>` | `gh stack checkout <pr>` |
+| `gt get <pr>` / `gt get <branch>` | `gh stack checkout <pr>` / `gh stack checkout <branch>` (a branch not tracked locally is fetched from GitHub together with its stack) |
 | `gt log` / `gt ls` / `gt ll` | `gh stack view`, `gh stack view --short`, or `git log --graph` |
 | `gt up`, `down`, `top`, `bottom`, `trunk` | The corresponding `gh stack` navigation command |
 | `gt merge` | `gh stack merge` |
