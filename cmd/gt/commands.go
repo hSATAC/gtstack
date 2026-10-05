@@ -69,6 +69,12 @@ func cmdCreate(args []string) error {
 	} else {
 		return fmt.Errorf("gt create needs a branch name or -m <message>")
 	}
+	// gh stack can adopt an existing branch without checking it out when it
+	// belongs to another worktree. gt commits separately, so accepting that
+	// name could put the commit on the current branch instead of the target.
+	if isLocalBranch(name) {
+		return fmt.Errorf("branch %q already exists; choose a new name or use `gt checkout` to work on an existing branch", name)
+	}
 
 	// Stage first: an aborted `git add -p` should not leave a new branch behind.
 	if err := stage(*all, *update, *patch); err != nil {

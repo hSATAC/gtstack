@@ -2,7 +2,54 @@
 
 package integration
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
+
+// gh stack can adopt a branch in another worktree without checking it out.
+// gt create commits separately, so it must reject existing names before any
+// staging or adoption can put a commit on the wrong branch.
+func TestCreateRefusesExistingBranch(t *testing.T) {
+	for _, startStack := range []bool{true, false} {
+		name := "extend-stack"
+		if startStack {
+			name = "start-stack"
+		}
+		t.Run(name, func(t *testing.T) {
+			f := newFixture(t)
+			if !startStack {
+				f.layer("layer-one", "Add layer one")
+			}
+			f.git("branch", "existing")
+			linked := f.worktree("existing")
+			before := f.git("rev-parse", "HEAD")
+			f.write("new.txt", "must stay uncommitted\n")
+
+			r := f.run(gtBin, "create", "existing", "-a", "-m", "New layer")
+
+			if r.code == 0 || !strings.Contains(r.stderr, "already exists") {
+				t.Errorf("create did not reject the existing branch\n%s", r.output())
+			}
+			if got := f.git("rev-parse", "HEAD"); got != before {
+				t.Errorf("create changed the original branch from %s to %s", before, got)
+			}
+			if got := linked.git("rev-parse", "HEAD"); got != before {
+				t.Errorf("create changed the existing branch from %s to %s", before, got)
+			}
+			if got := f.git("status", "--porcelain"); got != "?? new.txt" {
+				t.Errorf("create staged or committed changes: status is %q, want an untracked new.txt", got)
+			}
+			if startStack {
+				if f.gitFileExists("gh-stack") {
+					t.Errorf("create initialized stack tracking for an existing branch")
+				}
+			} else if got := f.tracked(); len(got) != 1 || got[0] != "layer-one" {
+				t.Errorf("create changed stack tracking: %q", got)
+			}
+		})
+	}
+}
 
 func TestModifyAcrossWorktrees(t *testing.T) {
 	f := newFixture(t)

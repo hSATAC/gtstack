@@ -47,7 +47,9 @@ repository afterwards — branches, commits, rebase results, the state file:
 `TestLinkedWorktree` reads and extends the shared stack through `gt` from a
 linked worktree. `worktree_test.go` checks amending and cascading into another
 worktree, restacking and syncing onto a moved trunk, and continuing or aborting
-a conflict from outside the worktree that holds it.
+a conflict from outside the worktree that holds it. It also verifies that
+`gt create` refuses an existing branch in another worktree before staging,
+committing, or changing the shared catalog.
 
 `contract_test.go` pins the parts of the `gh stack` interface `gt` depends on:
 

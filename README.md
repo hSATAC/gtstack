@@ -135,6 +135,8 @@ rather than silently dropped.
 not support forks:
 
 - `gt create` must run from the top of the current stack.
+- `gt create` requires a new branch name. Use `gt checkout` for an existing
+  branch, or native `gh stack init` / `add` to adopt it into a stack.
 - If a branch belongs to more than one stack, `gtstack` stops and asks you to
   use `gh stack` directly.
 
@@ -179,6 +181,21 @@ changes or create or remove worktrees. `gt modify` commits in the current
 worktree before asking `gh stack` to rebase its descendants, so a rejected
 rebase can leave that commit in place.
 
+These operations follow gh-stack's worktree semantics. [Graphite 1.8.4 and
+newer][graphite-worktrees] generally avoid modifying branches checked out in
+other worktrees; gh-stack can rebase those branches in their owning worktrees.
+
+The new native `gh stack checkout --print-path` flag can report a target's
+worktree path. The passthrough navigation commands (`gt up`, `down`, `top`,
+`bottom`, and `trunk`) also accept `--print-path`, but `gt checkout` does not
+yet expose it. `gtstack` has no shell integration to change your shell's
+working directory.
+
+Graphite's `gt create --onto <branch>` remains unsupported. The new ability
+to adopt branches across worktrees makes a translation worth exploring for
+linear stacks, but it still needs explicit branch creation, parent selection,
+and failure handling; upgrading the extension alone does not implement it.
+
 ## Transparent by default
 
 Before running each native operation, `gtstack` prints the exact command to
@@ -215,6 +232,8 @@ fold  move  reorder  rename  delete
 
 `gh stack` can perform these, but only inside an interactive editor. No flag
 drives them, so there is nothing for a one-line `gt` command to call.
+Version 0.2.0 lets that editor operate across worktrees; it does not add
+non-interactive flags for these operations or `gt create --insert`.
 
 ### `gh stack` has no equivalent
 
@@ -266,4 +285,5 @@ silently corrupt a stack.
 
 [gh-cli]: https://cli.github.com/
 [gh-stack]: https://github.com/github/gh-stack
+[graphite-worktrees]: https://graphite.com/docs/multiple-worktrees
 [releases]: https://github.com/hSATAC/gtstack/releases
