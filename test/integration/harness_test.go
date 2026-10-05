@@ -46,6 +46,8 @@ func runTests(m *testing.M) int {
 	os.Setenv("GIT_TERMINAL_PROMPT", "0")
 	os.Setenv("NO_COLOR", "1")
 	os.Setenv("GH_NO_UPDATE_NOTIFIER", "1")
+	os.Setenv("GH_NO_EXTENSION_UPDATE_NOTIFIER", "1")
+	os.Setenv("GH_STACK_NO_UPDATE_NOTIFIER", "1")
 	// Nothing here may reach GitHub. Every operation under test is meant to
 	// work locally, so a command that quietly started calling the API would be
 	// a change worth failing on rather than one to paper over.
@@ -193,6 +195,14 @@ func (f *fixture) write(name, content string) {
 	if err := os.WriteFile(filepath.Join(f.dir, name), []byte(content), 0o644); err != nil {
 		f.t.Fatal(err)
 	}
+}
+
+// worktree checks out an unoccupied branch in a temporary linked worktree.
+func (f *fixture) worktree(branch string) *fixture {
+	f.t.Helper()
+	dir := filepath.Join(f.t.TempDir(), "linked worktree")
+	f.git("worktree", "add", "--quiet", dir, branch)
+	return &fixture{t: f.t, dir: dir, origin: f.origin}
 }
 
 // layer adds one stack layer carrying a file of its own, the shape almost

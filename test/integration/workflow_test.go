@@ -426,16 +426,8 @@ func TestUnsupportedCommands(t *testing.T) {
 	}
 }
 
-// TestLinkedWorktree covers both sides of a case gt cannot fix on its own.
-//
-// gt reads the stack state from the shared git directory, so it recognises a
-// tracked branch from a linked worktree. gh stack v0.1.1 does not: run there,
-// every one of its commands reports the branch as untracked. So gt reaches the
-// right decision and then the command it runs fails anyway.
-//
-// The second half of this test is deliberately pinned to the broken
-// behaviour. When gh stack learns to find its state from a linked worktree,
-// this test fails and gt's handling finally pays off.
+// TestLinkedWorktree checks that gt and gh stack share the same catalog when
+// reading and extending a stack from a linked worktree.
 func TestLinkedWorktree(t *testing.T) {
 	f := newFixture(t)
 	f.layer("layer-one", "Add layer one")
@@ -443,9 +435,7 @@ func TestLinkedWorktree(t *testing.T) {
 	// in a worktree.
 	f.gt("trunk")
 
-	linked := f.dir + "-worktree"
-	f.git("worktree", "add", "--quiet", linked, "layer-one")
-	worktree := &fixture{t: t, dir: linked, origin: f.origin}
+	worktree := f.worktree("layer-one")
 
 	// gt's side: the state lives in the shared git directory and gt finds it.
 	// Reading it as absent would turn `gt create` into `gh stack init` and
@@ -454,12 +444,17 @@ func TestLinkedWorktree(t *testing.T) {
 		t.Errorf("gt sees %q as the stack from a linked worktree, want [layer-one]", got)
 	}
 
-	// gh stack's side.
-	r := worktree.run("gh", "stack", "view")
-	if r.code == 0 {
-		t.Errorf("`gh stack view` now works in a linked worktree; gt already resolves state through "+
-			"--git-common-dir, so drop this expectation and test the worktree path for real\n%s", r.output())
-	} else if !strings.Contains(r.output(), "not part of a stack") {
-		t.Errorf("`gh stack view` failed differently in a linked worktree than the known v0.1.1 limitation\n%s", r.output())
+	if r := worktree.gt("log"); !strings.Contains(r.stdout, "layer-one (current)") {
+		t.Errorf("gt log did not identify the linked worktree's branch\n%s", r.output())
+	}
+	worktree.layer("layer-two", "Add layer two")
+	if got := f.tracked(); len(got) != 2 || got[0] != "layer-one" || got[1] != "layer-two" {
+		t.Errorf("create from a linked worktree did not extend the shared stack: %q", got)
+	}
+	if got := worktree.branch(); got != "layer-two" {
+		t.Errorf("linked worktree is on %q, want layer-two", got)
+	}
+	if got := f.branch(); got != "main" {
+		t.Errorf("create switched the main worktree to %q, want main", got)
 	}
 }

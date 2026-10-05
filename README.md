@@ -12,14 +12,14 @@ of its own.
 
 > [!IMPORTANT]
 > `gtstack` is early software. It currently supports **linear stacks only** and
-> targets `gh-stack` **v0.1.1**, state schema **v1**. When an operation cannot
+> targets `gh-stack` **v0.2.0**, state schema **v1**. When an operation cannot
 > be translated safely, it stops with an actionable error instead of guessing.
 
 ## Quick start
 
 ### Requirements
 
-- Git
+- Git 2.36 or newer for cross-worktree operations
 - [GitHub CLI (`gh`)][gh-cli], authenticated with GitHub
 - The [`github/gh-stack`][gh-stack] extension
 - Go 1.23 or newer to build from source
@@ -166,6 +166,19 @@ rewriting its parent's commit.
 the current stack rather than every tracked branch. Trunk and untracked local
 branches are checked out directly with Git.
 
+### Linked worktrees
+
+With `gh-stack` v0.2.0, linked worktrees share the stack catalog. `gt log` and
+`gt create` work from a linked worktree, and `gt modify`, `gt restack`, and
+`gt sync` can rebase a stack whose branches are checked out in different
+worktrees. Resolve conflicts in the worktree reported by `gh stack`; then
+`gt continue` or `gt abort` can run from another worktree in the repository.
+
+Affected worktrees must be clean before a rebase; `gh stack` does not stash
+changes or create or remove worktrees. `gt modify` commits in the current
+worktree before asking `gh stack` to rebase its descendants, so a rejected
+rebase can leave that commit in place.
+
 ## Transparent by default
 
 Before running each native operation, `gtstack` prints the exact command to
@@ -246,7 +259,8 @@ In a non-interactive environment it never installs software automatically; it
 prints the installation command and exits instead.
 
 To decide whether `gt create` should initialize or extend a stack, `gtstack`
-reads the state written by `gh stack` at `.git/gh-stack`. It refuses to run
+reads the state written by `gh stack` at `<git-common-dir>/gh-stack`
+(`.git/gh-stack` in a regular checkout). It refuses to run
 against an unknown schema version so that a future `gh-stack` update cannot
 silently corrupt a stack.
 
