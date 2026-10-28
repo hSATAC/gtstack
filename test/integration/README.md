@@ -58,6 +58,12 @@ a conflict from outside the worktree that holds it. It also verifies that
 `gt create` refuses an existing branch in another worktree before staging,
 committing, or changing the shared catalog.
 
+`checkout_test.go` exercises `checkout --print-path` for tracked and
+untracked branches, named trunks, and `-t`, both in the current worktree and
+in a linked worktree whose path contains spaces. It checks path-only stdout,
+checkout behavior, invalid targets, dirty working trees, and unavailable
+worktree registrations.
+
 `contract_test.go` pins the parts of the `gh stack` interface `gt` depends on:
 
 - **Command surface.** Every native invocation `gt` can emit, taken from

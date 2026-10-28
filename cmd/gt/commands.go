@@ -295,13 +295,26 @@ func resume(flag string, args []string) error {
 func cmdCheckout(args []string) error {
 	fs := newFlags("checkout [branch]")
 	trunk := fs.BoolP("trunk", "t", false, "check out the trunk")
+	printPath := fs.Bool("print-path", false, "print the target worktree path (requires a target or --trunk)")
 	if err := parse(fs, args); err != nil {
 		return err
 	}
+	if fs.NArg() > 1 {
+		return fmt.Errorf("gt checkout accepts at most one target")
+	}
+	if *trunk && fs.NArg() != 0 {
+		return fmt.Errorf("--trunk cannot be combined with a target")
+	}
 	if *trunk {
+		if *printPath {
+			return run("gh", "stack", "trunk", "--print-path")
+		}
 		return run("gh", "stack", "trunk")
 	}
 	if fs.NArg() == 0 {
+		if *printPath {
+			return fmt.Errorf("--print-path requires a target or --trunk")
+		}
 		return run("gh", "stack", "switch")
 	}
 	// gh stack checkout reads a bare name as a stack number, then a PR, then a
@@ -314,8 +327,14 @@ func cmdCheckout(args []string) error {
 			return err
 		}
 		if !locate(st, target).inStack {
+			if *printPath {
+				return checkoutLocalBranchPath(target)
+			}
 			return run("git", "checkout", target)
 		}
+	}
+	if *printPath {
+		return run("gh", "stack", "checkout", target, "--print-path")
 	}
 	return run("gh", "stack", "checkout", target)
 }

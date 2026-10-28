@@ -115,7 +115,7 @@ blindly forwarding the command.
 | `gt sync` | `gh stack sync` (`-d` maps to `--prune`) |
 | `gt restack` | `gh stack rebase` (`-d`/`-u` map to `--downstack`/`--upstack`) |
 | `gt continue` / `gt abort` | Continue or abort the paused `gh stack rebase` or `gh stack modify` |
-| `gt checkout` / `gt co` | `gh stack checkout`, `gh stack switch`, or `git checkout`, depending on the target |
+| `gt checkout` / `gt co` | `gh stack checkout`, `gh stack switch`, or `git checkout`, depending on the target; `--print-path` reports the target worktree |
 | `gt get <pr>` / `gt get <branch>` | `gh stack checkout <pr>` / `gh stack checkout <branch>` (a branch not tracked locally is fetched from GitHub together with its stack) |
 | `gt log` / `gt ls` / `gt ll` | `gh stack view`, `gh stack view --short`, or `git log --graph` |
 | `gt up`, `down`, `top`, `bottom`, `trunk` | The corresponding `gh stack` navigation command |
@@ -193,7 +193,7 @@ branches are checked out directly with Git.
 
 ### Linked worktrees
 
-With `gh-stack` v0.2.0, linked worktrees share the stack catalog. `gt log` and
+Since `gh-stack` v0.2.0, linked worktrees share the stack catalog. `gt log` and
 `gt create` work from a linked worktree, and `gt modify`, `gt restack`, and
 `gt sync` can rebase a stack whose branches are checked out in different
 worktrees. Resolve conflicts in the worktree reported by `gh stack`; then
@@ -208,11 +208,22 @@ These operations follow gh-stack's worktree semantics. [Graphite 1.8.4 and
 newer][graphite-worktrees] generally avoid modifying branches checked out in
 other worktrees; gh-stack can rebase those branches in their owning worktrees.
 
-The new native `gh stack checkout --print-path` flag can report a target's
-worktree path. The passthrough navigation commands (`gt up`, `down`, `top`,
-`bottom`, and `trunk`) also accept `--print-path`, but `gt checkout` does not
-yet expose it. `gtstack` has no shell integration to change your shell's
-working directory.
+Use `gt checkout <target> --print-path` (or `gt co`) to print only the target
+worktree's absolute path on stdout. It requires an explicit target, or `-t`
+to select the current stack's trunk. Trunk names and untracked local branches
+keep their Git-based routing; stack and PR targets use native gh-stack
+resolution. The navigation commands (`gt up`, `down`, `top`, `bottom`, and
+`trunk`) also accept `--print-path`.
+
+If the branch is already checked out in another worktree, the current
+checkout stays unchanged. Otherwise, the command checks out the branch in
+the current worktree and prints that worktree's path. This is a checkout
+operation, not a read-only path lookup. `gtstack` does not change your shell's
+working directory; a shell can use the output explicitly:
+
+```sh
+target_path=$(gt checkout layer-two --print-path) && cd "$target_path"
+```
 
 Graphite's `gt create --onto <branch>` remains unsupported. The new ability
 to adopt branches across worktrees makes a translation worth exploring for

@@ -165,10 +165,10 @@ func shellQuote(s string) string {
 	return s
 }
 
-// capture runs a command and returns its trimmed stdout.
+// capture reads a single output line, preserving whitespace in Git paths.
 func capture(name string, args ...string) (string, error) {
 	out, err := exec.Command(name, args...).Output()
-	return strings.TrimSpace(string(out)), err
+	return strings.TrimSuffix(string(out), "\n"), err
 }
 
 // passthrough forwards a command straight to `gh stack <sub>`.
@@ -197,6 +197,44 @@ func gitCommonDir() (string, error) {
 
 func isLocalBranch(name string) bool {
 	return run2("git", "show-ref", "--verify", "--quiet", "refs/heads/"+name) == nil
+}
+
+// checkoutLocalBranchPath mirrors native --print-path for branches that must
+// bypass gh stack's target resolution. Git supplies the owning worktree path;
+// an unoccupied branch is checked out here before this worktree is printed.
+func checkoutLocalBranchPath(target string) error {
+	owner, err := capture("git", "for-each-ref", "--format=%(worktreepath)", "refs/heads/"+target)
+	if err != nil {
+		return fmt.Errorf("finding worktree for branch %q: %w", target, err)
+	}
+	path, err := capture("git", "rev-parse", "--show-toplevel")
+	if err != nil {
+		return fmt.Errorf("finding current worktree: %w", err)
+	}
+	if owner == "" {
+		// Keep checkout status messages off stdout so it contains only a path.
+		if err := run("git", "checkout", "--quiet", target); err != nil {
+			return err
+		}
+	} else {
+		common, err := gitCommonDir()
+		if err != nil {
+			return fmt.Errorf("finding common Git directory: %w", err)
+		}
+		ownerCommon, err := capture("git", "-C", owner, "rev-parse", "--path-format=absolute", "--git-common-dir")
+		if err != nil {
+			return fmt.Errorf("worktree %q for branch %q is unavailable; repair it before continuing: %w", owner, target, err)
+		}
+		if ownerCommon != common {
+			return fmt.Errorf("worktree %q for branch %q no longer belongs to this repository", owner, target)
+		}
+		path, err = capture("git", "-C", owner, "rev-parse", "--show-toplevel")
+		if err != nil {
+			return fmt.Errorf("resolving worktree path for branch %q: %w", target, err)
+		}
+	}
+	_, err = fmt.Fprintln(os.Stdout, path)
+	return err
 }
 
 // hasStagedChanges reports whether the index differs from HEAD.
