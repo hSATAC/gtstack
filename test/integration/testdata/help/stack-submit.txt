@@ -11,10 +11,12 @@ after deleting the stack) and you deselect every new PR, press Ctrl+B (or click
 the "STACK N PRs" button) to link the existing open PRs into a stack.
 
 This command performs several steps:
-  1. Pushes all branches to the remote
+  1. Pushes all active branches to the remote atomically
   2. Creates new PRs for the included branches
   3. Updates base branches for existing PRs
   4. Creates or updates the stack on GitHub
+
+Use --no-atomic to allow partial branch updates. PR updates are not atomic.
 
 In the editor, new PRs default to ready for review; switch any to draft with the
 "CREATE AS" toggle. With --auto, new PRs are created as drafts unless you pass
@@ -36,5 +38,6 @@ Examples:
 Flags:
       --auto            Use auto-generated PR titles without prompting
   -h, --help            help for submit
+      --no-atomic       Disable atomic pushes (also set by GH_STACK_NO_ATOMIC)
       --open            Mark new and existing PRs as ready for review
       --remote string   Remote to push to (defaults to auto-detected remote)

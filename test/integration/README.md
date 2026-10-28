@@ -1,13 +1,13 @@
 # Integration tests
 
-`gtstack` is a translation layer, and `gh stack` is at v0.2.0. A renamed flag,
+`gtstack` is a translation layer, and `gh stack` is at v0.3.0. A renamed flag,
 a changed default, or a moved state file breaks `gt` without changing a line of
 its own code, and the unit tests in `cmd/gt` cannot see any of it.
 
 These tests can, because they drive the real extension.
 
 ```sh
-gh extension install github/gh-stack --pin v0.2.0
+gh extension install github/gh-stack --pin v0.3.0
 go test -tags=integration ./test/integration/
 ```
 
@@ -87,7 +87,7 @@ Also untested: `gh stack switch` and `gh stack modify` open a TUI, and the
 
 ## Worktree compatibility
 
-The baseline is `gh stack` v0.2.0 with Git 2.36 or newer for cross-worktree
+The baseline is `gh stack` v0.3.0 with Git 2.36 or newer for cross-worktree
 operations. Both `gt` and `gh stack` resolve the shared catalog through
 `--git-common-dir`. These tests require successful worktree operations; the
 old v0.1.1 expectation that linked worktrees could not find their stack no
@@ -108,13 +108,13 @@ that cannot be run.
 
 `.github/workflows/gh-stack-compat.yml` installs a `gh-stack` release and runs
 this suite. It runs every day against `latest`, and takes a version as a
-`workflow_dispatch` input — a tag such as `v0.2.0`, or `latest`.
+`workflow_dispatch` input — a tag such as `v0.3.0`, or `latest`.
 
 On failure it opens an issue labelled `gh-stack-compat` with the failing output,
 which GitHub emails to you. A later green run closes it. While an issue is
 already open, further failures are added as comments rather than new issues.
 
-When it goes red, dispatch it again with `v0.2.0` — the version gtstack
+When it goes red, dispatch it again with `v0.3.0` — the version gtstack
 targets. If that run is green, the extension changed; if it is red too,
 something in the tests or the runner did.
 

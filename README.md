@@ -12,7 +12,7 @@ of its own.
 
 > [!IMPORTANT]
 > `gtstack` is early software. It currently supports **linear stacks only** and
-> targets `gh-stack` **v0.2.0**, state schema **v1**. When an operation cannot
+> targets `gh-stack` **v0.3.0**, state schema **v1**. When an operation cannot
 > be translated safely, it stops with an actionable error instead of guessing.
 
 ## Quick start
@@ -232,7 +232,7 @@ fold  move  reorder  rename  delete
 
 `gh stack` can perform these, but only inside an interactive editor. No flag
 drives them, so there is nothing for a one-line `gt` command to call.
-Version 0.2.0 lets that editor operate across worktrees; it does not add
+The editor supports operations across worktrees, but v0.3.0 still has no
 non-interactive flags for these operations or `gt create --insert`.
 
 ### `gh stack` has no equivalent

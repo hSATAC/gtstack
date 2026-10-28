@@ -7,6 +7,10 @@ Use --no-trunk to skip fetching and rebasing with the trunk branch.
 Only the inter-branch rebases are performed (branch 2 onto branch 1,
 branch 3 onto branch 2, etc.).
 
+If GitHub retargeted the stack because its base branch was deleted, the
+stack is rebased onto the new base. Removing commits from an old base that
+did not merge requires confirmation, or --accept-base-change.
+
 Usage:
   gh stack rebase [branch] [flags]
 
@@ -31,6 +35,7 @@ Examples:
 
 Flags:
       --abort                           Abort rebase and restore all branches
+      --accept-base-change              Rebase onto a retargeted base even if the old base did not merge
       --committer-date-is-author-date   Set the committer date to the author date during rebase
       --continue                        Continue rebase after resolving conflicts
       --downstack                       Only rebase branches from trunk to current branch

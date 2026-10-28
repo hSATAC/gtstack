@@ -8,10 +8,13 @@ This command performs a safe synchronization:
      resolve a divergence in an interactive terminal
   3. Fast-forwards the trunk branch to match the remote
   4. Cascade-rebases stack branches onto their updated parents
-  5. Pushes all branches atomically (using --force-with-lease --atomic)
+  5. Pushes all branches atomically by default, using --force-with-lease
+     after a rebase
   6. Syncs PR state from GitHub
   7. Links the stack's open PRs into a stack on GitHub (creating or updating
      the remote stack object) when two or more PRs exist
+
+Use --no-atomic to allow partial branch updates.
 
 If PRs have been added to the stack on GitHub, their branches are pulled
 down and appended to your local stack so it mirrors the remote. A clean
@@ -33,6 +36,10 @@ stack, while "Branches synced" means the branches were rebased and pushed
 but no remote stack object was created or updated (for example, when fewer
 than two PRs exist yet).
 
+If GitHub retargeted the stack because its base branch was deleted, sync
+rebases the stack onto the new base. Removing commits from an old base that
+did not merge requires confirmation, or --accept-base-change.
+
 Use --prune to delete local branches for merged PRs. Stack metadata is
 preserved so that rebase and display logic continue to work correctly.
 If you are on a branch that would be pruned, your checkout is moved to
@@ -42,6 +49,8 @@ Usage:
   gh stack sync [flags]
 
 Flags:
-  -h, --help            help for sync
-      --prune           Delete local branches for merged PRs
-      --remote string   Remote to fetch from and push to (defaults to auto-detected remote)
+      --accept-base-change   Rebase onto a retargeted base even if the old base did not merge
+  -h, --help                 help for sync
+      --no-atomic            Disable atomic pushes (also set by GH_STACK_NO_ATOMIC)
+      --prune                Delete local branches for merged PRs
+      --remote string        Remote to fetch from and push to (defaults to auto-detected remote)
