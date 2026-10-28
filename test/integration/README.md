@@ -44,6 +44,13 @@ repository afterwards — branches, commits, rebase results, the state file:
 | Conflicts | pause detection, `gt continue`, `gt abort` |
 | Refusals | unsupported commands, unknown commands, conflicting flags |
 
+`options_test.go` checks `sync` and `restack` with `--accept-base-change` on
+local stacks, and verifies atomic-push defaults and overrides against a bare
+remote that does not advertise atomic-push support. It checks remote refs
+because native `sync` can report a push failure as a warning and still exit
+successfully. Unit tests also record subprocess arguments to verify flag
+forwarding, including `submit`, without opening PRs.
+
 `TestLinkedWorktree` reads and extends the shared stack through `gt` from a
 linked worktree. `worktree_test.go` checks amending and cascading into another
 worktree, restacking and syncing onto a moved trunk, and continuing or aborting
@@ -75,12 +82,19 @@ committing, or changing the shared catalog.
 
 ## What is not covered
 
-`gh stack submit`, `merge` and `pr` need the GitHub API, so they cannot run
-here. They are covered by the command-surface and help-snapshot checks only: a
-renamed flag is caught, a silently changed default is not.
+`gh stack submit`, `merge` and `pr` need the GitHub API, so their remote
+behavior is not exercised here. Command-surface and help-snapshot checks catch
+renamed flags and documented changes, but not silently changed defaults.
 
-Closing that gap means a sandbox repository, a token with write access, and
-real pull requests on every run.
+End-to-end coverage requires a sandbox repository, a token with write access,
+and real pull requests on every run.
+
+The base-retargeting confirmation and partially merged PR fixes in v0.3.0
+also depend on GitHub state. These fixtures have no published stack ID, so
+they do not exercise those API paths. Passing `--accept-base-change` locally
+checks translation and ordinary rebase behavior, not remote retargeting.
+Mock API tests could cover more of that contract; full end-to-end validation
+would still require a sandbox repository.
 
 Also untested: `gh stack switch` and `gh stack modify` open a TUI, and the
 `gh-stack-modify-state` marker `gt` looks for can only be produced through it.

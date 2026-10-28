@@ -187,6 +187,7 @@ func cmdSubmit(args []string) error {
 	noEdit := fs.BoolP("no-edit", "n", false, "skip the PR metadata editor (the default)")
 	edit := fs.BoolP("edit", "e", false, "open the gh stack submit editor")
 	stack := fs.Bool("stack", false, "submit the whole stack (always on with gh stack)")
+	noAtomic := fs.Bool("no-atomic", false, "allow partial branch pushes (defaults to GH_STACK_NO_ATOMIC)")
 	if err := parse(fs, args); err != nil {
 		return err
 	}
@@ -204,7 +205,12 @@ func cmdSubmit(args []string) error {
 	if *draft && *edit {
 		fmt.Fprintln(os.Stderr, "gt: note — set draft with the CREATE AS toggle in the submit editor.")
 	}
-	return run("gh", submitArgs(*edit, *publish)...)
+	gh := submitArgs(*edit, *publish)
+	// Preserve an explicit false so it can override GH_STACK_NO_ATOMIC.
+	if fs.Changed("no-atomic") {
+		gh = append(gh, fmt.Sprintf("--no-atomic=%t", *noAtomic))
+	}
+	return run("gh", gh...)
 }
 
 // submitArgs builds the `gh stack submit` invocation. It is split out so the
@@ -223,12 +229,20 @@ func submitArgs(edit, publish bool) []string {
 func cmdSync(args []string) error {
 	fs := newFlags("sync")
 	deleteAll := fs.BoolP("delete-all", "d", false, "delete branches for merged PRs without prompting")
+	acceptBaseChange := fs.Bool("accept-base-change", false, "accept a retargeted base even if the old base did not merge")
+	noAtomic := fs.Bool("no-atomic", false, "allow partial branch pushes (defaults to GH_STACK_NO_ATOMIC)")
 	if err := parse(fs, args); err != nil {
 		return err
 	}
 	gh := []string{"stack", "sync"}
 	if *deleteAll {
 		gh = append(gh, "--prune")
+	}
+	if *acceptBaseChange {
+		gh = append(gh, "--accept-base-change")
+	}
+	if fs.Changed("no-atomic") {
+		gh = append(gh, fmt.Sprintf("--no-atomic=%t", *noAtomic))
 	}
 	return run("gh", gh...)
 }
@@ -238,6 +252,7 @@ func cmdRestack(args []string) error {
 	downstack := fs.BoolP("downstack", "d", false, "restack this branch and its ancestors")
 	upstack := fs.BoolP("upstack", "u", false, "restack this branch and its descendants")
 	only := fs.BoolP("only", "o", false, "restack this branch only")
+	acceptBaseChange := fs.Bool("accept-base-change", false, "accept a retargeted base even if the old base did not merge")
 	if err := parse(fs, args); err != nil {
 		return err
 	}
@@ -253,6 +268,9 @@ func cmdRestack(args []string) error {
 	}
 	if *upstack {
 		gh = append(gh, "--upstack")
+	}
+	if *acceptBaseChange {
+		gh = append(gh, "--accept-base-change")
 	}
 	return run("gh", gh...)
 }

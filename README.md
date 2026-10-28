@@ -155,6 +155,29 @@ created as drafts; pass `-p` to mark them ready for review.
 > It will publish a PR you had deliberately left as a draft, so `gt submit`
 > never passes it for you.
 
+### Atomic pushes and base changes
+
+With `gh-stack` v0.3.0, `gt submit` and `gt sync` push active branches
+atomically by default: either all branch refs update or none do. PR creation
+and updates are separate API operations and are not atomic. Use
+`gt submit --no-atomic` or `gt sync --no-atomic` to allow partial branch
+updates, for example when a remote does not support atomic pushes.
+`GH_STACK_NO_ATOMIC=1` also disables atomic pushes; `--no-atomic=false`
+overrides that environment setting for one command.
+
+If GitHub retargets a stack after its base branch is deleted, `gt sync` and
+`gt restack` follow the new base. If the commits being removed from the old
+base are not known to have merged into the new one, gh-stack requires
+confirmation. Pass `--accept-base-change` to either command only when you
+intend to accept that removal, including in non-interactive scripts. `gt`
+never enables this flag automatically. A retarget may require restacking the
+whole stack instead of using `-d` or `-u`.
+
+For stacks already published on GitHub, checking the base requires GitHub API
+access. `gt modify` still uses `--no-trunk` for its upstack rebase and skips
+that check. Version 0.3.0 also fixes submission after restructuring partially
+merged stacks and avoids replaying already-merged commits during rebase.
+
 ### `gt modify` is implemented with Git
 
 `gh stack` has no equivalent of Graphite's amend operation. `gtstack` commits

@@ -48,6 +48,8 @@ func runTests(m *testing.M) int {
 	os.Setenv("GH_NO_UPDATE_NOTIFIER", "1")
 	os.Setenv("GH_NO_EXTENSION_UPDATE_NOTIFIER", "1")
 	os.Setenv("GH_STACK_NO_UPDATE_NOTIFIER", "1")
+	// Atomic pushes are the native default. Individual option tests opt out.
+	os.Unsetenv("GH_STACK_NO_ATOMIC")
 	// Nothing here may reach GitHub. Every operation under test is meant to
 	// work locally, so a command that quietly started calling the API would be
 	// a change worth failing on rather than one to paper over.
